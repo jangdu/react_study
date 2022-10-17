@@ -28,13 +28,12 @@ function todoReducer(state, action) {
         case 'CREATE':
             return state.concat(action.todo);
         case 'TOGGLE':
-            return state.map(todo =>
-                todo.id === action.id ? {...todo, done: !todo.done} : todo)
+            return state.map(todo => todo.id === action.id ? {...todo, done: !todo.done} : todo);
         case 'REMOVE':
             return state.filter(todo => todo.id !== action.id);
         default:
-            throw new Error('Unhandled action type: ${action.type}')
-    }
+            throw new Error(`Unhandled action type: ${action.type}`);
+        }
 }
 
 // 커스텀훅
@@ -44,23 +43,42 @@ const TodoDispatchContext = createContext();
 const TodoNextIdContext = createContext();
 
 export function TodoProvider({children}){
+    // useRducer(초기값, 변동값)
     const [state, dispatch] = useReducer(todoReducer, initialTodos);
     const nextId = useRef(5);
 
     return (
         <TodoStateContext.Provider value={state}>
             <TodoDispatchContext.Provider value={dispatch}>
-                <TodoNextIdContext value={nextId}>
+                <TodoNextIdContext.Provider value={nextId}>
                     {children}
-                </TodoNextIdContext>
+                </TodoNextIdContext.Provider>
             </TodoDispatchContext.Provider>
         </TodoStateContext.Provider>
     );
 }
 
+// Context사용을 위한 커스텀 훅 에러처리를 하면 문제점발견이 빠르다
 export function useTodoState() {
-    return useContext(TodoStateContext);
+    const context = useContext(TodoStateContext);
+    if(!context){
+        throw new Error('Cannot find TodoProvider');
+    }
+    return context;
 }
-export function useTodoState() {
-    return useContext(TodoDispatchContext);
+
+export function useTodoDispatch() {
+    const context =  useContext(TodoDispatchContext);
+    if(!context) {
+        throw new Error('Cannot find TodoProvider');
+    }
+    return context;
+}
+
+export function useTodoNextId() {
+    const context = useContext(TodoNextIdContext);
+    if(!context){
+        throw new Error('Cannot find TodoProvider');
+    }
+    return context;
 }
