@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { MdAdd } from "react-icons/md";
+import { useTodoDispatch, useTodoNextId } from "../TodoContext";
 
 const CircleButton = styled.button`
     background: #38d9a9;
@@ -78,14 +79,37 @@ function TodoCreate(){
     // useState(초기값): 컴포넌트 동적상태관리하는 react hook
     // open: 초기값, setOpen 변동값
     const [open, setOpen] = useState(false);
+    const [value, setValue] = useState('');
+
+    const nextId = useTodoNextId();
+    const dispatch = useTodoDispatch();
+
     const onToggle = () => setOpen(!open);
+    const onChanged = e => setValue(e.target.value);
+    const onSubmit = e => {
+        e.preventDefault();
+        dispatch({
+            type: 'CREATE',
+            todo: {
+              id: nextId.current,
+              text: value,
+              done: false
+            }
+        })
+        setValue('');
+        setOpen(false);
+        nextId.current += 1;
+    }
 
     return (
         <>
             {open && (
                 <InsertFormPositioner>
-                    <InsertForm>
-                        <Input autoFocus placeholder="할일 입력후 Enter" />
+                    <InsertForm onSubmit={onSubmit}>
+                        <Input autoFocus placeholder="할일 입력후 Enter" 
+                            onChange={onChanged}
+                            value={value}
+                        />
                     </InsertForm>
                 </InsertFormPositioner>
             )}
@@ -96,4 +120,4 @@ function TodoCreate(){
     )
 }
 
-export default TodoCreate;
+export default React.memo(TodoCreate);
